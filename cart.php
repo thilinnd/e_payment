@@ -69,9 +69,27 @@ $total = 0;
         </table>
         <h4>Tổng cộng: <?= number_format($total); ?> VNĐ</h4>
         <form action="checkout.php" method="POST" onsubmit="return confirmCheckout()">
+            <p>Chọn phương thức thanh toán:</p>
+            <label>
+                <input type="radio" name="gateway" value="momo" required> MoMo
+            </label><br>
+            <label>
+                <input type="radio" name="gateway" value="vnpay"> VNPay
+            </label><br>
+            <label>
+                <input type="radio" name="gateway" value="paypal"> PayPal
+            </label><br><br>
+
             <input type="hidden" name="checkout" value="1">
             <button type="submit" class="btn btn-success">✅ Đặt hàng</button>
         </form>
+
+        <script>
+            function confirmCheckout() {
+                return confirm("Bạn có chắc chắn muốn đặt hàng?");
+            }
+        </script>
+
 
     <?php endif; ?>
     <br><br>

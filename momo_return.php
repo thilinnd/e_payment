@@ -9,4 +9,5 @@ if ($_GET['resultCode'] == 0) {
     echo "<h2>❌ Thanh toán thất bại hoặc bị hủy.</h2>";
 }
 ?>
-<a href='index.php'>← Quay lại trang mua hàng</a>
+<a href='<?php echo dirname($_SERVER['PHP_SELF']) . "/index.php"; ?>'>← Quay lại trang mua hàng</a>
+
