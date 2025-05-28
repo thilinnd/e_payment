@@ -1,12 +1,14 @@
 <?php
 session_start();
 
+// Dữ liệu sản phẩm
 $products = [
     1 => ["name" => "Sản phẩm A", "price" => 1000],
     2 => ["name" => "Sản phẩm B", "price" => 200000],
     3 => ["name" => "Sản phẩm C", "price" => 300000],
 ];
 
+// Giỏ hàng lấy từ session
 $cart = $_SESSION['cart'] ?? [];
 $total = 0;
 ?>
@@ -14,15 +16,11 @@ $total = 0;
 <html lang="vi">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Giỏ hàng</title>
-    <!-- Thay thế -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/style.css">
-
-    <!-- Có thể thêm icon đẹp: -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/style.css" />
     <script>
         function confirmDelete() {
             return confirm("Bạn có chắc chắn muốn xoá sản phẩm này?");
@@ -36,6 +34,7 @@ $total = 0;
 
 <body class="container py-4">
     <h1 class="mb-4">🛒 Giỏ hàng</h1>
+
     <?php if (empty($cart)): ?>
         <div class="alert alert-warning">Giỏ hàng đang trống.</div>
     <?php else: ?>
@@ -51,49 +50,54 @@ $total = 0;
             </thead>
             <tbody>
                 <?php foreach ($cart as $id => $qty):
+                    if (!isset($products[$id])) continue; // Tránh lỗi nếu id không tồn tại
                     $p = $products[$id];
                     $subtotal = $p['price'] * $qty;
                     $total += $subtotal;
                 ?>
                     <tr>
-                        <td><?= $p['name']; ?></td>
-                        <td><?= $qty; ?></td>
-                        <td><?= number_format($p['price']); ?> VNĐ</td>
-                        <td><?= number_format($subtotal); ?> VNĐ</td>
+                        <td><?= htmlspecialchars($p['name']) ?></td>
+                        <td><?= (int)$qty ?></td>
+                        <td><?= number_format($p['price']) ?> VNĐ</td>
+                        <td><?= number_format($subtotal) ?> VNĐ</td>
                         <td>
-                            <a href="remove_from_cart.php?id=<?= $id; ?>" class="btn btn-danger btn-sm" onclick="return confirmDelete()">Xoá</a>
+                            <a href="remove_from_cart.php?id=<?= urlencode($id) ?>" class="btn btn-danger btn-sm" onclick="return confirmDelete()">
+                                <i class="bi bi-trash"></i> Xoá
+                            </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <h4>Tổng cộng: <?= number_format($total); ?> VNĐ</h4>
-        <form action="checkout.php" method="POST" onsubmit="return confirmCheckout()">
-            <p>Chọn phương thức thanh toán:</p>
-            <label>
-                <input type="radio" name="gateway" value="momo" required> MoMo
-            </label><br>
-            <label>
-                <input type="radio" name="gateway" value="vnpay"> VNPay
-            </label><br>
-            <label>
-                <input type="radio" name="gateway" value="paypal"> PayPal
-            </label><br><br>
 
-            <input type="hidden" name="checkout" value="1">
-            <button type="submit" class="btn btn-success">✅ Đặt hàng</button>
+        <h4 class="mt-3">Tổng cộng: <strong><?= number_format($total) ?> VNĐ</strong></h4>
+
+        <form action="checkout.php" method="POST" onsubmit="return confirmCheckout()" class="mt-3">
+            <input type="hidden" name="amount" value="<?= htmlspecialchars($total) ?>" />
+            <div class="mb-3">
+                <label class="form-label fw-bold">Chọn cổng thanh toán:</label><br />
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="gateway" value="momo" id="payMomo" checked required />
+                    <label class="form-check-label" for="payMomo">MoMo</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="gateway" value="vnpay" id="payVnpay" />
+                    <label class="form-check-label" for="payVnpay">VNPay</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="gateway" value="paypal" id="payPaypal" />
+                    <label class="form-check-label" for="payPaypal">PayPal</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-credit-card"></i> Thanh toán
+            </button>
         </form>
-
-        <script>
-            function confirmCheckout() {
-                return confirm("Bạn có chắc chắn muốn đặt hàng?");
-            }
-        </script>
-
-
     <?php endif; ?>
-    <br><br>
-    <a href="index.php" class="btn btn-secondary">← Tiếp tục mua hàng</a>
+
+    <div class="mt-4">
+        <a href="index.php" class="btn btn-secondary">← Tiếp tục mua hàng</a>
+    </div>
 </body>
 
 </html>

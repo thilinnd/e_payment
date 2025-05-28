@@ -1,14 +1,13 @@
 <?php
-
 session_start();
-require 'db.php'; // Kết nối CSDL
+require 'db.php'; // file chứa $pdo
 
 if (!isset($_POST['gateway']) || empty($_SESSION['cart'])) {
     header("Location: cart.php");
     exit;
 }
 
-// Danh sách sản phẩm tạm thời
+// Danh sách sản phẩm mẫu
 $products = [
     1 => ["name" => "Sản phẩm A", "price" => 1000],
     2 => ["name" => "Sản phẩm B", "price" => 200000],
@@ -17,7 +16,7 @@ $products = [
 
 $orderCode = 'OD' . rand(1000, 9999);
 $total = 0;
-$gateway = $_POST['gateway']; // lấy phương thức thanh toán
+$gateway = $_POST['gateway'];
 
 // Lưu đơn hàng vào DB
 foreach ($_SESSION['cart'] as $id => $qty) {
@@ -27,7 +26,6 @@ foreach ($_SESSION['cart'] as $id => $qty) {
         $subtotal = $price * $qty;
         $total += $subtotal;
 
-        // CHỈNH SỬA: thêm payment_method vào SQL và execute
         $stmt = $pdo->prepare("INSERT INTO orders (order_code, product_id, product_name, quantity, price, total_price, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $orderCode,
@@ -36,7 +34,7 @@ foreach ($_SESSION['cart'] as $id => $qty) {
             $qty,
             $price,
             $subtotal,
-            $gateway // thêm phương thức thanh toán vào DB
+            $gateway
         ]);
     }
 }
@@ -49,10 +47,12 @@ $_SESSION['last_order'] = [
     'created_at' => date('Y-m-d H:i:s')
 ];
 
-// Xoá giỏ hàng
-unset($_SESSION['cart']);
+// Không xoá cart nếu là PayPal vì cần giá trị trong bước xử lý tiếp theo
+if ($gateway !== 'paypal') {
+    unset($_SESSION['cart']);
+}
 
-// Điều hướng đến cổng thanh toán tương ứng
+// Điều hướng
 switch ($gateway) {
     case 'momo':
         header("Location: momo_payment.php");
