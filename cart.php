@@ -1,20 +1,23 @@
 <?php
 session_start();
+require 'db.php'; // kết nối CSDL
 
-// Dữ liệu sản phẩm
-$products = [
-    1 => ["name" => "Sản phẩm A", "price" => 1000],
-    2 => ["name" => "Sản phẩm B", "price" => 200000],
-    3 => ["name" => "Sản phẩm C", "price" => 300000],
-];
-
-// Giỏ hàng lấy từ session
+// Lấy giỏ hàng từ session
 $cart = $_SESSION['cart'] ?? [];
 $total = 0;
+
+// Lấy dữ liệu sản phẩm từ DB dựa trên ID
+$productData = [];
+if (!empty($cart)) {
+    $ids = implode(',', array_map('intval', array_keys($cart)));
+    $stmt = $pdo->query("SELECT * FROM products WHERE id IN ($ids)");
+    foreach ($stmt as $row) {
+        $productData[$row['id']] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8" />
     <title>Giỏ hàng</title>
@@ -25,13 +28,11 @@ $total = 0;
         function confirmDelete() {
             return confirm("Bạn có chắc chắn muốn xoá sản phẩm này?");
         }
-
         function confirmCheckout() {
             return confirm("Xác nhận đặt hàng?");
         }
     </script>
 </head>
-
 <body class="container py-4">
     <h1 class="mb-4">🛒 Giỏ hàng</h1>
 
@@ -50,8 +51,8 @@ $total = 0;
             </thead>
             <tbody>
                 <?php foreach ($cart as $id => $qty):
-                    if (!isset($products[$id])) continue; // Tránh lỗi nếu id không tồn tại
-                    $p = $products[$id];
+                    if (!isset($productData[$id])) continue;
+                    $p = $productData[$id];
                     $subtotal = $p['price'] * $qty;
                     $total += $subtotal;
                 ?>
@@ -99,5 +100,4 @@ $total = 0;
         <a href="index.php" class="btn btn-secondary">← Tiếp tục mua hàng</a>
     </div>
 </body>
-
 </html>
